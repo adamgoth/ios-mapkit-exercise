@@ -14,6 +14,8 @@ class LocationVC: UIViewController, UITableViewDelegate, UITableViewDataSource, 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var map: MKMapView!
     
+    let regionRadius: CLLocationDistance = 1000
+    
     let locationManager = CLLocationManager()
     
     override func viewDidLoad() {
@@ -48,6 +50,17 @@ class LocationVC: UIViewController, UITableViewDelegate, UITableViewDataSource, 
             map.showsUserLocation = true
         } else {
             locationManager.requestWhenInUseAuthorization()
+        }
+    }
+    
+    func centerMapOnLocation(location: CLLocation) {
+        let coordinateRegion = MKCoordinateRegionMakeWithDistance(location.coordinate, regionRadius * 2, regionRadius * 2)
+        map.setRegion(coordinateRegion, animated: true)
+    }
+    
+    func mapView(mapView: MKMapView, didUpdateUserLocation userLocation: MKUserLocation) {
+        if let loc = userLocation.location {
+            centerMapOnLocation(loc)
         }
     }
 
