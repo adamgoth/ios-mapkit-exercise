@@ -18,11 +18,22 @@ class LocationVC: UIViewController, UITableViewDelegate, UITableViewDataSource, 
     
     let locationManager = CLLocationManager()
     
+    //pretend these came from the server
+    let addresses = [
+        "2797 Wewatta Way, Denver, CO 80216",
+        "2142 Curtis Street, Denver, CO 80205",
+        "1701 Wynkoop St, Denver, CO 80202"
+    ]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         map.delegate = self
         tableView.delegate = self
         tableView.dataSource = self
+        
+        for add in addresses {
+            getPlacemarkFromAddress(add)
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -61,6 +72,35 @@ class LocationVC: UIViewController, UITableViewDelegate, UITableViewDataSource, 
     func mapView(mapView: MKMapView, didUpdateUserLocation userLocation: MKUserLocation) {
         if let loc = userLocation.location {
             centerMapOnLocation(loc)
+        }
+    }
+    
+    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+        if annotation.isKindOfClass(BootcampAnnotation) {
+            let annoView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "Default")
+            annoView.pinTintColor = UIColor.blackColor()
+            annoView.animatesDrop = true
+            return annoView
+        } else if annotation.isKindOfClass(MKUserLocation) {
+            return nil
+        }
+        
+        return nil
+    }
+    
+    func createAnnotationForLocation(location: CLLocation) {
+        let bootcamp = BootcampAnnotation(coordinate: location.coordinate)
+        map.addAnnotation(bootcamp)
+    }
+    
+    func getPlacemarkFromAddress(address: String) {
+        CLGeocoder().geocodeAddressString(address) { (placemarks: [CLPlacemark]?, error: NSError?) -> Void in
+            if let marks = placemarks where marks.count > 0 {
+                if let loc = marks[0].location {
+                    //We have a valid location with coordinates at this point
+                    self.createAnnotationForLocation(loc)
+                }
+            }
         }
     }
 
